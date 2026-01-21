@@ -13,11 +13,6 @@ variable "alb_security_group_id" {
     type = string
 }
 
-variable "target_group_arn" {
-    description = "Target group ARN" # ARN means adress resource name
-    type = string
-}
-
 variable "instance_type" {
     description = "(Optional) EC2 instance type"
     type = string
@@ -54,9 +49,6 @@ variable "aws_lb_target_group_attachment_port" {
     default = 80
 }
 
-variable "alb_security_group_id" { 
-    type = string 
-}
 variable "target_group_arn" { 
     type = string 
 }
