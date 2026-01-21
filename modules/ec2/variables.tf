@@ -66,7 +66,7 @@ variable "instances" {
     description = "List of EC2 instances to create"
     type = map(object({
         name        = string
-        ami_id      = string
         instance_type = string
+        subnet_id   = string
     }))
 }
