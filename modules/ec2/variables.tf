@@ -18,11 +18,6 @@ variable "target_group_arn" {
     type = string
 }
 
-variable "ami_id" {
-    description = "AMI id from Amazon Linux 2"
-    type = string
-}
-
 variable "instance_type" {
     description = "(Optional) EC2 instance type"
     type = string
