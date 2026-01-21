@@ -1,0 +1,61 @@
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  owners = ["099720109477"]
+}
+resource "aws_security_group" "ec2" {
+    name = "${var.project_name}-sg"
+    vpc_id = var.vpc_id
+
+    ingress {
+    from_port       = var.aws_security_group_port_ingress
+    to_port         = var.aws_security_group_port_ingress
+    protocol        = var.aws_security_group_ingress_protocol
+    security_groups = [var.alb_security_group_id]
+    }
+
+    egress {
+    from_port       = var.aws_security_group_port_egress
+    to_port         = var.aws_security_group_port_egress
+    protocol    = var.aws_security_group_egress_protocol
+    cidr_blocks = var.aws_security_group_cidr_blocks
+    }
+}
+
+resource "aws_instance" "web" {
+    count = 2
+    ami = data.aws_ami.ubuntu.id
+    instance_type = var.instance_type
+    subnet_id = var.subnet_ids[count.index]
+    vpc_security_group_ids = [aws_security_group.ec2.id]
+
+    user_data = <<-EOF
+    #!/bin/bash
+    yum install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+    
+    INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+    HOSTNAME=$(hostname)
+
+    cat <<HTML > /var/www/html/index.html
+    <h1>Hola Mundo</h1>
+    <p>Instance ID: $INSTANCE_ID</p>
+    <p>Hostname: $HOSTNAME</p>
+    HTML
+    EOF
+}
+
+# I define this here and not in the alb module cause the ec2 module 
+# is the only one that know about the ids of the instances to attach
+resource "aws_lb_target_group_attachment" "web" { 
+    count = 2
+    target_group_arn = var.target_group_arn
+    target_id = aws_instance.web[count.index].id
+    port = var.aws_lb_target_group_attachment_port
+}
