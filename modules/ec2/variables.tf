@@ -60,3 +60,13 @@ variable "alb_security_group_id" {
 variable "target_group_arn" { 
     type = string 
 }
+
+
+variable "instances" {
+    description = "List of EC2 instances to create"
+    type = map(object({
+        name        = string
+        ami_id      = string
+        instance_type = string
+    }))
+}

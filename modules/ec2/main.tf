@@ -28,10 +28,11 @@ resource "aws_security_group" "ec2" {
 }
 
 resource "aws_instance" "web" {
-    count = 2
+  for_each = var.instances
+
     ami = data.aws_ami.ubuntu.id
-    instance_type = var.instance_type
-    subnet_id = var.subnet_ids[count.index]
+    instance_type = each.value.instance_type
+    subnet_id = each.value.subnet_id
     vpc_security_group_ids = [aws_security_group.ec2.id]
 
     user_data = <<-EOF
@@ -54,8 +55,9 @@ resource "aws_instance" "web" {
 # I define this here and not in the alb module cause the ec2 module 
 # is the only one that know about the ids of the instances to attach
 resource "aws_lb_target_group_attachment" "web" { 
-    count = 2
+    for each = var.instances
+
     target_group_arn = var.target_group_arn
-    target_id = aws_instance.web[count.index].id
+    target_id = each.value.id
     port = var.aws_lb_target_group_attachment_port
 }
