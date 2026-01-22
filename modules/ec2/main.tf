@@ -28,29 +28,40 @@ resource "aws_security_group" "ec2" {
 }
 
 resource "aws_instance" "web" {
-
   for_each = var.instances
 
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = each.value.instance_type
   subnet_id              = each.value.subnet_id
   vpc_security_group_ids = [aws_security_group.ec2.id]
+  
+  # Añade esto para que la instancia sea accesible
+  associate_public_ip_address = true 
 
   user_data = <<-EOF
 #!/bin/bash
-yum install -y httpd
-systemctl start httpd
-systemctl enable httpd
+# Comandos correctos para UBUNTU
+apt-get update -y
+apt-get install -y apache2
+systemctl start apache2
+systemctl enable apache2
 
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+# Obtener metadatos (Token para seguridad)
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
 HOSTNAME=$(hostname)
 
+# Crear el index.html en la ruta de Ubuntu
 cat <<HTML > /var/www/html/index.html
-<h1>Hola Mundo</h1>
+<h1>Hola Mundo desde Ubuntu</h1>
 <p>Instance ID: $INSTANCE_ID</p>
 <p>Hostname: $HOSTNAME</p>
 HTML
 EOF
+
+  tags = {
+    Name = "${var.project_name}-${each.key}"
+  }
 }
 
 # I define this here and not in the alb module cause the ec2 module 
