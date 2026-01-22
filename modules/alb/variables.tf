@@ -50,4 +50,16 @@ variable "ingress_protocol" {
     description = "The protocol for ingress traffic to the ALB."
     type        = string
     default     = "tcp"
+
+}
+variable "security_group_ingress_protocol" {
+  description = "Protocol for the ALB security group ingress rule."
+  type        = string
+  default     = "tcp"
+}
+
+variable "listener_protocol" {
+  description = "Protocol for the ALB listener (HTTP or HTTPS)."
+  type        = string
+  default     = "HTTP"
 }
