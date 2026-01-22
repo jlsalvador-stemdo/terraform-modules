@@ -33,7 +33,7 @@ variable "instance_type" {
 variable "aws_security_group_port_egress" {
     description = "(Optional) Communication egress port"
     type = number
-    default = 80
+    default = 0
 }
 
 variable "aws_security_group_port_ingress" {
@@ -72,4 +72,5 @@ variable "instances" {
         instance_type = string
         subnet_id   = string
     }))
+
 }
