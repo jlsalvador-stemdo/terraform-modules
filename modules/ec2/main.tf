@@ -55,9 +55,10 @@ EOF
 # I define this here and not in the alb module cause the ec2 module 
 # is the only one that know about the ids of the instances to attach
 resource "aws_lb_target_group_attachment" "web" { 
-    for each = var.instances
+    for_each = var.instances
 
     target_group_arn = var.target_group_arn
     target_id = each.value.id
     port = var.aws_lb_target_group_attachment_port
+
 }
