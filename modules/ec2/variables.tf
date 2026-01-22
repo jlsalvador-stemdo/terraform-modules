@@ -72,4 +72,5 @@ variable "instances" {
         instance_type = string
         subnet_id   = string
     }))
+
 }

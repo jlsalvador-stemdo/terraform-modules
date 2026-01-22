@@ -38,9 +38,14 @@ resource "aws_instance" "web" {
   # Añade esto para que la instancia sea accesible
   associate_public_ip_address = true 
 
+  # IMPORTANTE: Permitir que el script acceda a los metadatos
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "optional" # Esto facilita que el script funcione sin fallos de token
+  }
+
   user_data = <<-EOF
 #!/bin/bash
-# Comandos correctos para UBUNTU
 apt-get update -y
 apt-get install -y apache2
 systemctl start apache2
@@ -57,6 +62,9 @@ cat <<HTML > /var/www/html/index.html
 <p>Instance ID: $INSTANCE_ID</p>
 <p>Hostname: $HOSTNAME</p>
 HTML
+
+# Reiniciar para asegurar
+systemctl restart apache2
 EOF
 
   tags = {
@@ -73,3 +81,5 @@ resource "aws_lb_target_group_attachment" "web" {
   target_id        = each.value.id
   port             = var.aws_lb_target_group_attachment_port
 }
+
+

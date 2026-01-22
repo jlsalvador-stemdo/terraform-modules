@@ -14,7 +14,7 @@ resource "aws_security_group" "this" {
     ingress {
         from_port   = var.port_ingress
         to_port     = var.port_ingress
-        protocol    = var.ingress_protocol
+        protocol    = var.security_group_ingress_protocol
         cidr_blocks = var.allowed_cidr_blocks_ingress
     }
 
@@ -55,4 +55,5 @@ resource "aws_lb_listener" "this" {
         type             = "forward"
         target_group_arn = aws_lb_target_group.this.arn
     }
+
 }
