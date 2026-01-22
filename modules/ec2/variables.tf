@@ -3,6 +3,17 @@ variable "vpc_id" {
     type = string
 }
 
+variable "project_name" {
+    description = "Project name"
+    type = string
+}
+
+variable "aws_security_group_egress_protocol" {
+    description = "Egress SG protocol"
+    type = string
+    default = "tcp"
+}
+
 variable "subnet_ids" {
     description = "VPC subnets ids"
     type = list(string)
