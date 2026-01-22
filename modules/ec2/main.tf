@@ -26,6 +26,7 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = var.aws_security_group_cidr_blocks
     }
 }
+
 resource "aws_instance" "web" {
   for_each = var.instances
 
@@ -34,15 +35,29 @@ resource "aws_instance" "web" {
   subnet_id              = each.value.subnet_id
   vpc_security_group_ids = [aws_security_group.ec2.id]
 
+  # IMPORTANTE: Permitir que el script acceda a los metadatos
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "optional" # Esto facilita que el script funcione sin fallos de token
+  }
+
   user_data = <<-EOF
 #!/bin/bash
+# Forzar que no pida confirmaciones
+export DEBIAN_FRONTEND=noninteractive
+
 apt-get update -y
 apt-get install -y apache2
+
+# Asegurar que Apache esté arriba
 systemctl start apache2
 systemctl enable apache2
 
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
+# Esperar un poco a que la red esté lista para los metadatos
+sleep 10
+
+# Obtener IDs (Simplificado para evitar fallos de curl)
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 HOSTNAME=$(hostname)
 
 # Crear el index.html
@@ -51,7 +66,14 @@ cat <<HTML > /var/www/html/index.html
 <p>Instance ID: $INSTANCE_ID</p>
 <p>Hostname: $HOSTNAME</p>
 HTML
+
+# Reiniciar para asegurar
+systemctl restart apache2
 EOF
+
+  tags = {
+    Name = "${var.project_name}-${each.key}"
+  }
 }
 
 # I define this here and not in the alb module cause the ec2 module 
@@ -63,4 +85,5 @@ resource "aws_lb_target_group_attachment" "web" {
   target_id        = each.value.id
   port             = var.aws_lb_target_group_attachment_port
 }
+
 
