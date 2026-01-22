@@ -13,6 +13,13 @@ variable "vpc_id" {
   type        = string
 }
 
+
+variable "security_group_ingress_protocol" {
+  description = "Protocolo de entrada para el SG del ALB"
+  type        = string
+  default     = "tcp"
+}
+
 variable "internal" {
   description = "Boolean to specify if the ALB is internal or internet-facing."
   type        = bool
@@ -53,4 +60,5 @@ variable "ingress_protocol" {
     type        = string
     default     = "tcp"
 }
+
 
