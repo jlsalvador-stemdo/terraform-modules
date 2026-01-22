@@ -34,6 +34,9 @@ resource "aws_instance" "web" {
   instance_type          = each.value.instance_type
   subnet_id              = each.value.subnet_id
   vpc_security_group_ids = [aws_security_group.ec2.id]
+  
+  # Añade esto para que la instancia sea accesible
+  associate_public_ip_address = true 
 
   # IMPORTANTE: Permitir que el script acceda a los metadatos
   metadata_options {
@@ -43,24 +46,17 @@ resource "aws_instance" "web" {
 
   user_data = <<-EOF
 #!/bin/bash
-# Forzar que no pida confirmaciones
-export DEBIAN_FRONTEND=noninteractive
-
 apt-get update -y
 apt-get install -y apache2
-
-# Asegurar que Apache esté arriba
 systemctl start apache2
 systemctl enable apache2
 
-# Esperar un poco a que la red esté lista para los metadatos
-sleep 10
-
-# Obtener IDs (Simplificado para evitar fallos de curl)
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+# Obtener metadatos (Token para seguridad)
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
 HOSTNAME=$(hostname)
 
-# Crear el index.html
+# Crear el index.html en la ruta de Ubuntu
 cat <<HTML > /var/www/html/index.html
 <h1>Hola Mundo desde Ubuntu</h1>
 <p>Instance ID: $INSTANCE_ID</p>

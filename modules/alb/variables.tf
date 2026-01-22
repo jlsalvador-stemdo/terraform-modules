@@ -22,6 +22,7 @@ variable "internal" {
 variable "port_ingress" {
     description = "The port for ingress traffic to the ALB."
     type       = number
+    default    = 80
 }
 
 variable "allowed_cidr_blocks_ingress" {
@@ -38,6 +39,7 @@ variable "allowed_cidr_blocks_egress" {
 variable "port_egress" {
     description = "The port for egress traffic from the ALB."
     type       = number
+    default    = 0
 }
 
 variable "egress_protocol" {
@@ -50,16 +52,5 @@ variable "ingress_protocol" {
     description = "The protocol for ingress traffic to the ALB."
     type        = string
     default     = "tcp"
-
-}
-variable "security_group_ingress_protocol" {
-  description = "Protocol for the ALB security group ingress rule."
-  type        = string
-  default     = "tcp"
 }
 
-variable "listener_protocol" {
-  description = "Protocol for the ALB listener (HTTP or HTTPS)."
-  type        = string
-  default     = "HTTP"
-}

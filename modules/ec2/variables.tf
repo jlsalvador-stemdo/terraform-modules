@@ -11,7 +11,7 @@ variable "project_name" {
 variable "aws_security_group_egress_protocol" {
     description = "Egress SG protocol"
     type = string
-    default = "tcp"
+    default = "-1"
 }
 
 variable "subnet_ids" {
