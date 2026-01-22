@@ -26,9 +26,7 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = var.aws_security_group_cidr_blocks
     }
 }
-
 resource "aws_instance" "web" {
-
   for_each = var.instances
 
   ami                    = data.aws_ami.ubuntu.id
@@ -38,15 +36,18 @@ resource "aws_instance" "web" {
 
   user_data = <<-EOF
 #!/bin/bash
-yum install -y httpd
-systemctl start httpd
-systemctl enable httpd
+apt-get update -y
+apt-get install -y apache2
+systemctl start apache2
+systemctl enable apache2
 
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
 HOSTNAME=$(hostname)
 
+# Crear el index.html
 cat <<HTML > /var/www/html/index.html
-<h1>Hola Mundo</h1>
+<h1>Hola Mundo desde Ubuntu</h1>
 <p>Instance ID: $INSTANCE_ID</p>
 <p>Hostname: $HOSTNAME</p>
 HTML
@@ -62,3 +63,4 @@ resource "aws_lb_target_group_attachment" "web" {
   target_id        = each.value.id
   port             = var.aws_lb_target_group_attachment_port
 }
+
