@@ -7,7 +7,7 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_security_group" "this" {
-    name       = "${var.project_name}-sg"
+    name       = "${var.project_name}-sg-alb"
     description = "Security group for ALB ${var.project_name}"
     vpc_id      = var.vpc_id
 
